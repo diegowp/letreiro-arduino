@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <title>CYD 2.8 - Painel Bluetooth Pro</title>
+    <style>
+      :root {
+        --bg: #0b1120;
+        --card-bg: #1e293b;
+        --primary: #38bdf8;
+        --primary-hover: #0284c7;
+        --text: #f8fafc;
+        --muted: #94a3b8;
+        --success: #22c55e;
+        --danger: #ef4444;
+        --border: #334155;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+
+      body {
+        background-color: var(--bg);
+        color: var(--text);
+        padding: 16px;
+        display: flex;
+        justify-content: center;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 480px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      header {
+        text-align: center;
+        padding: 6px 0;
+      }
+
+      h1 {
+        font-size: 1.35rem;
+        color: var(--primary);
+      }
+
+      .subtitle {
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .card h2 {
+        font-size: 1.05rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn {
+        background-color: var(--primary);
+        color: #0f172a;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s;
+      }
+
+      .btn:hover:not(:disabled) {
+        background-color: var(--primary-hover);
+        color: #ffffff;
+      }
+
+      .btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .btn-secondary {
+        background-color: #334155;
+        color: #f8fafc;
+      }
+
+      .btn-secondary:hover:not(:disabled) {
+        background-color: #475569;
+      }
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        width: fit-content;
+        margin: 0 auto;
+      }
+
+      .status-disconnected {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--danger);
+        border: 1px solid var(--danger);
+      }
+
+      .status-connected {
+        background: rgba(34, 197, 94, 0.15);
+        color: var(--success);
+        border: 1px solid var(--success);
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      label {
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+
+      input[type="text"],
+      input[type="range"],
+      select {
+        width: 100%;
+        background: #0b1120;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 10px;
+        color: #fff;
+        font-size: 0.95rem;
+      }
+
+      /* Color Pickers Grid */
+      .color-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .color-picker-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #0b1120;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+      }
+
+      .color-picker-box input[type="color"] {
+        width: 40px;
+        height: 40px;
+        border: none;
+        border-radius: 6px;
+        background: none;
+        cursor: pointer;
+      }
+
+      .color-picker-box span {
+        font-size: 0.85rem;
+        font-weight: 500;
+      }
+
+      /* Preview do Letreiro */
+      .live-preview {
+        padding: 14px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        text-align: center;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        font-weight: bold;
+        transition: all 0.2s;
+      }
+
+      /* Botoes de Tamanho */
+      .btn-group {
+        display: flex;
+        gap: 8px;
+      }
+
+      .btn-group .btn {
+        flex: 1;
+        padding: 8px 6px;
+        font-size: 0.85rem;
+      }
+
+      .btn-group .active {
+        background-color: var(--primary);
+        color: #0f172a;
+      }
+
+      .btn-group .inactive {
+        background-color: #0b1120;
+        color: var(--muted);
+        border: 1px solid var(--border);
+      }
+
+      /* Layout Toggle */
+      .layout-toggle-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #0b1120;
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+      }
+
+      /* Recorte Interativo da Imagem */
+      .crop-container {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 320 / 240;
+        max-width: 320px;
+        margin: 0 auto;
+        border: 2px dashed var(--primary);
+        border-radius: 8px;
+        overflow: hidden;
+        background: #000;
+        touch-action: none; /* Permite arrastar com o dedo no celular */
+        cursor: grab;
+      }
+
+      .crop-container:active {
+        cursor: grabbing;
+      }
+
+      #cropCanvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .crop-instructions {
+        font-size: 0.75rem;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .progress-bar-container {
+        width: 100%;
+        height: 12px;
+        background: #0b1120;
+        border-radius: 6px;
+        overflow: hidden;
+        display: none;
+      }
+
+      .progress-bar {
+        width: 0%;
+        height: 100%;
+        background: var(--success);
+        transition: width 0.1s;
+      }
+
+      .log {
+        font-size: 0.8rem;
+        color: var(--muted);
+        text-align: center;
+        min-height: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>ESP32 CYD - Painel de Controle</h1>
+        <div class="subtitle">Letreiro & Envio de Imagens via Bluetooth</div>
+      </header>
+
+      <!-- Card Conexão -->
+      <div class="card">
+        <div id="statusBadge" class="status-badge status-disconnected">
+          ● Desconectado
+        </div>
+        <button id="btnConnect" class="btn">Conectar ao CYD (Bluetooth)</button>
+        <div id="logText" class="log">
+          Abra no Chrome e selecione "CYD-Letreiro"
+        </div>
+      </div>
+
+      <!-- Card do Letreiro -->
+      <div class="card">
+        <h2>💬 Configuração do Letreiro</h2>
+
+        <div class="form-group">
+          <label for="inputPhrase">Frase a exibir no letreiro:</label>
+          <input
+            type="text"
+            id="inputPhrase"
+            value="Feira de Ciências!"
+            maxlength="140"
+          />
+        </div>
+
+        <!-- Temas Rápidos -->
+        <div class="form-group">
+          <label>Combinações Prontas:</label>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              style="padding: 6px 10px; font-size: 0.8rem"
+              onclick="setTheme('#FFFFFF', '#000000')"
+            >
+              ⬛ Preto / Branco
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              style="padding: 6px 10px; font-size: 0.8rem"
+              onclick="setTheme('#000000', '#FFFFFF')"
+            >
+              ⬜ Branco / Preto
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              style="padding: 6px 10px; font-size: 0.8rem"
+              onclick="setTheme('#FFE600', '#000000')"
+            >
+              🟨 Preto / Amarelo
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              style="padding: 6px 10px; font-size: 0.8rem"
+              onclick="setTheme('#000000', '#00E676')"
+            >
+              🟩 Verde / Preto
+            </button>
+          </div>
+        </div>
+
+        <!-- Color Pickers -->
+        <div class="color-grid">
+          <div class="color-picker-box">
+            <input type="color" id="pickerTextColor" value="#FFE600" />
+            <div>
+              <span>Cor da Letra</span>
+            </div>
+          </div>
+          <div class="color-picker-box">
+            <input type="color" id="pickerBgColor" value="#000000" />
+            <div>
+              <span>Cor de Fundo</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pré-visualização ao vivo -->
+        <div
+          id="livePreview"
+          class="live-preview"
+          style="background: #000000; color: #ffe600"
+        >
+          Atenção! Promoção especial de café hoje à tarde!
+        </div>
+
+        <!-- Seletor de Tamanho da Fonte -->
+        <div class="form-group">
+          <label>Tamanho das Letras (Tipografia U8g2):</label>
+          <div class="btn-group" id="sizeGroup">
+            <button class="btn inactive" data-size="1">Normal</button>
+            <button class="btn inactive" data-size="2">Médio</button>
+            <button class="btn inactive" data-size="3">Grande</button>
+            <button class="btn active" data-size="4">GIGANTE (75% Tela)</button>
+          </div>
+        </div>
+
+        <!-- Velocidade -->
+        <div class="form-group">
+          <label for="speedSlider"
+            >Velocidade da Rolagem: <span id="speedVal">3</span></label
+          >
+          <input type="range" id="speedSlider" min="1" max="15" value="3" />
+        </div>
+
+        <!-- Modo de Layout -->
+        <div class="layout-toggle-row">
+          <div>
+            <div style="font-weight: 600; font-size: 0.9rem">
+              Layout da Tela
+            </div>
+            <div
+              id="layoutDesc"
+              style="font-size: 0.75rem; color: var(--muted)"
+            >
+              Modo Minimalista (Tela Cheia Limpa)
+            </div>
+          </div>
+          <button
+            id="btnToggleLayout"
+            class="btn btn-secondary"
+            style="padding: 6px 12px; font-size: 0.8rem"
+          >
+            Mudar p/ Completo
+          </button>
+        </div>
+
+        <button id="btnSendText" class="btn" disabled>
+          Atualizar Letreiro na Tela
+        </button>
+      </div>
+
+      <!-- Card de Imagens com Recorte Fino -->
+      <div class="card">
+        <h2>🖼️ Enviar Foto (Recorte Fino)</h2>
+        <div class="form-group">
+          <label for="fileInput">Escolha uma imagem da galeria:</label>
+          <input type="file" id="fileInput" accept="image/*" />
+        </div>
+
+        <div class="crop-container" id="cropContainer">
+          <canvas id="cropCanvas" width="320" height="240"></canvas>
+        </div>
+        <div class="crop-instructions">
+          👆 Arraste a imagem para enquadrar perfeitamente
+        </div>
+
+        <div class="form-group">
+          <label for="zoomSlider"
+            >Zoom / Escala: <span id="zoomVal">1.0x</span></label
+          >
+          <input
+            type="range"
+            id="zoomSlider"
+            min="1"
+            max="3"
+            step="0.05"
+            value="1"
+            disabled
+          />
+        </div>
+
+        <button
+          id="btnCenterCrop"
+          class="btn btn-secondary"
+          style="padding: 6px; font-size: 0.8rem"
+          disabled
+        >
+          Centralizar Foto
+        </button>
+
+        <div id="progressContainer" class="progress-bar-container">
+          <div id="progressBar" class="progress-bar"></div>
+        </div>
+
+        <button id="btnSendImage" class="btn btn-secondary" disabled>
+          Enviar Foto para o Display
+        </button>
+        <button
+          id="btnClearImage"
+          class="btn btn-secondary"
+          style="background: #1e293b; border: 1px solid #334155"
+          disabled
+        >
+          Voltar ao Modo Letreiro
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // UUIDs Nordic UART Service
+      const SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+      const RX_CHAR_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+
+      let bluetoothDevice = null;
+      let rxCharacteristic = null;
+      let selectedTextSize = 4; // Padrão GIGANTE (50pt)
+      let isCleanLayout = true;
+
+      // Temas Rápidos
+      window.setTheme = function (fg, bg) {
+        pickerTextColor.value = fg;
+        pickerBgColor.value = bg;
+        updatePreview();
+      };
+
+      // Elementos UI
+      const btnConnect = document.getElementById("btnConnect");
+      const statusBadge = document.getElementById("statusBadge");
+      const logText = document.getElementById("logText");
+      const inputPhrase = document.getElementById("inputPhrase");
+      const pickerTextColor = document.getElementById("pickerTextColor");
+      const pickerBgColor = document.getElementById("pickerBgColor");
+      const livePreview = document.getElementById("livePreview");
+      const speedSlider = document.getElementById("speedSlider");
+      const speedVal = document.getElementById("speedVal");
+      const btnSendText = document.getElementById("btnSendText");
+      const btnToggleLayout = document.getElementById("btnToggleLayout");
+      const layoutDesc = document.getElementById("layoutDesc");
+      const sizeGroup = document.getElementById("sizeGroup");
+
+      // Elementos do Recorte Fino
+      const fileInput = document.getElementById("fileInput");
+      const cropCanvas = document.getElementById("cropCanvas");
+      const ctxCrop = cropCanvas.getContext("2d");
+      const zoomSlider = document.getElementById("zoomSlider");
+      const zoomVal = document.getElementById("zoomVal");
+      const btnCenterCrop = document.getElementById("btnCenterCrop");
+      const btnSendImage = document.getElementById("btnSendImage");
+      const btnClearImage = document.getElementById("btnClearImage");
+      const progressContainer = document.getElementById("progressContainer");
+      const progressBar = document.getElementById("progressBar");
+
+      // Estado da Imagem para o Pan/Zoom (Recorte Fino)
+      let loadedImg = null;
+      let panX = 0;
+      let panY = 0;
+      let scale = 1.0;
+      let baseScale = 1.0;
+      let isDragging = false;
+      let startX = 0;
+      let startY = 0;
+
+      // Converte #RRGGBB para RGB565 em hexadecimal
+      function hexToRgb565(hex) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        const rgb565 = ((r & 0xf8) << 8) | ((g & 0xfc) << 3) | (b >> 3);
+        return rgb565.toString(16).toUpperCase();
+      }
+
+      // Sanitizador de Acentos da Língua Portuguesa
+      function sanitizeAccents(str) {
+        return str
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[ç]/g, "c")
+          .replace(/[Ç]/g, "C")
+          .replace(/[ñ]/g, "n")
+          .replace(/[Ñ]/g, "N");
+      }
+
+      // Atualização da Pré-visualização
+      function updatePreview() {
+        livePreview.style.color = pickerTextColor.value;
+        livePreview.style.backgroundColor = pickerBgColor.value;
+        livePreview.textContent = inputPhrase.value || "Letreiro CYD";
+        if (selectedTextSize === 1) livePreview.style.fontSize = "0.95rem";
+        else if (selectedTextSize === 2) livePreview.style.fontSize = "1.25rem";
+        else if (selectedTextSize === 3) livePreview.style.fontSize = "1.65rem";
+        else livePreview.style.fontSize = "2.4rem"; // GIGANTE (75% Tela)
+      }
+
+      pickerTextColor.addEventListener("input", updatePreview);
+      pickerBgColor.addEventListener("input", updatePreview);
+      inputPhrase.addEventListener("input", updatePreview);
+
+      // Seletores de Tamanho
+      sizeGroup.querySelectorAll("button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          sizeGroup.querySelectorAll("button").forEach((b) => {
+            b.className = "btn inactive";
+          });
+          btn.className = "btn active";
+          selectedTextSize = parseInt(btn.getAttribute("data-size"));
+          updatePreview();
+          if (rxCharacteristic) {
+            sendCommand(`$FSZ:${selectedTextSize}`);
+          }
+        });
+      });
+
+      speedSlider.addEventListener("input", () => {
+        speedVal.textContent = speedSlider.value;
+        if (rxCharacteristic) {
+          sendCommand(`$SPD:${speedSlider.value}`);
+        }
+      });
+
+      // Alternador de Layout (Completo vs Minimalista)
+      btnToggleLayout.addEventListener("click", async () => {
+        isCleanLayout = !isCleanLayout;
+        if (isCleanLayout) {
+          btnToggleLayout.textContent = "Mudar p/ Completo";
+          layoutDesc.textContent = "Modo Minimalista (Tela Cheia Limpa)";
+        } else {
+          btnToggleLayout.textContent = "Mudar p/ Minimalista";
+          layoutDesc.textContent = "Modo Completo (com cabeçalho e status)";
+        }
+        if (rxCharacteristic) {
+          await sendCommand(`$LAY:${isCleanLayout ? "1" : "0"}`);
+        }
+      });
+
+      // Conexão Bluetooth
+      btnConnect.addEventListener("click", async () => {
+        if (!navigator.bluetooth) {
+          alert(
+            "Navegador sem suporte a Web Bluetooth! Use o Google Chrome no celular Android.",
+          );
+          return;
+        }
+
+        try {
+          logText.textContent = "Buscando 'CYD-Letreiro'...";
+          bluetoothDevice = await navigator.bluetooth.requestDevice({
+            filters: [{ namePrefix: "CYD-" }, { name: "CYD-Letreiro" }],
+            optionalServices: [SERVICE_UUID],
+          });
+
+          bluetoothDevice.addEventListener(
+            "gattserverdisconnected",
+            onDisconnected,
+          );
+
+          logText.textContent = "Conectando ao Bluetooth...";
+          const server = await bluetoothDevice.gatt.connect();
+
+          logText.textContent = "Obtendo serviço...";
+          const service = await server.getPrimaryService(SERVICE_UUID);
+          rxCharacteristic = await service.getCharacteristic(RX_CHAR_UUID);
+
+          setConnectedUI(true);
+          logText.textContent = "Conectado com sucesso!";
+        } catch (err) {
+          console.error(err);
+          logText.textContent = "Conexão cancelada: " + err.message;
+          setConnectedUI(false);
+        }
+      });
+
+      function setConnectedUI(connected) {
+        if (connected) {
+          statusBadge.textContent = "● Conectado ao CYD";
+          statusBadge.className = "status-badge status-connected";
+          btnConnect.textContent = "Desconectar";
+          btnSendText.disabled = false;
+          btnSendImage.disabled = !loadedImg;
+          btnClearImage.disabled = false;
+        } else {
+          statusBadge.textContent = "● Desconectado";
+          statusBadge.className = "status-badge status-disconnected";
+          btnConnect.textContent = "Conectar ao CYD (Bluetooth)";
+          btnSendText.disabled = true;
+          btnSendImage.disabled = true;
+          btnClearImage.disabled = true;
+          rxCharacteristic = null;
+        }
+      }
+
+      function onDisconnected() {
+        setConnectedUI(false);
+        logText.textContent = "Dispositivo desconectado.";
+      }
+
+      // Envio de comandos de texto
+      async function sendCommand(cmd) {
+        if (!rxCharacteristic) return;
+        try {
+          const encoder = new TextEncoder();
+          const data = encoder.encode(cmd);
+          if (rxCharacteristic.writeValueWithResponse) {
+            await rxCharacteristic.writeValueWithResponse(data);
+          } else {
+            await rxCharacteristic.writeValue(data);
+          }
+        } catch (err) {
+          console.error("Erro ao enviar comando:", err);
+          logText.textContent = "Erro no envio: " + err.message;
+        }
+      }
+
+      // Enviar Letreiro de forma Atômica e Estável ($CFG)
+      btnSendText.addEventListener("click", async () => {
+        const rawText = inputPhrase.value.trim();
+        if (!rawText) return;
+
+        btnSendText.disabled = true;
+        logText.textContent = "Atualizando letreiro com cores...";
+
+        try {
+          // Cores RGB em Hexadecimal puro (sem '#')
+          const fgHex = pickerTextColor.value.replace("#", "").toUpperCase();
+          const bgHex = pickerBgColor.value.replace("#", "").toUpperCase();
+          const layoutFlag = isCleanLayout ? "1" : "0";
+
+          // Envia todas as configurações em 1 ÚNICO pacote atômico
+          // Formato: $CFG:fgHex,bgHex,scale,speed,layout,texto
+          const unifiedCmd = `$CFG:${fgHex},${bgHex},${selectedTextSize},${speedSlider.value},${layoutFlag},${rawText}`;
+          await sendCommand(unifiedCmd);
+
+          logText.textContent = "Letreiro atualizado com sucesso!";
+        } catch (err) {
+          logText.textContent = "Erro ao atualizar: " + err.message;
+        } finally {
+          btnSendText.disabled = false;
+        }
+      });
+
+      btnClearImage.addEventListener("click", async () => {
+        logText.textContent = "Voltando ao modo letreiro...";
+        await sendCommand("$CLR");
+      });
+
+      // ---------------------------------------------------------------------------
+      // MOTOR DE RECORTE FINO (PAN & ZOOM INTERATIVO)
+      // ---------------------------------------------------------------------------
+      function drawCropper() {
+        ctxCrop.fillStyle = "#000000";
+        ctxCrop.fillRect(0, 0, 320, 240);
+
+        if (!loadedImg) {
+          ctxCrop.fillStyle = "#475569";
+          ctxCrop.font = "14px sans-serif";
+          ctxCrop.textAlign = "center";
+          ctxCrop.fillText("Nenhuma foto carregada", 160, 120);
+          return;
+        }
+
+        const currentScale = baseScale * scale;
+        const drawW = loadedImg.width * currentScale;
+        const drawH = loadedImg.height * currentScale;
+
+        // Limites de deslocamento para não deixar áreas vazias
+        const minPanX = Math.min(0, 320 - drawW);
+        const maxPanX = Math.max(0, 320 - drawW);
+        const minPanY = Math.min(0, 240 - drawH);
+        const maxPanY = Math.max(0, 240 - drawH);
+
+        panX = Math.max(minPanX, Math.min(maxPanX, panX));
+        panY = Math.max(minPanY, Math.min(maxPanY, panY));
+
+        ctxCrop.drawImage(loadedImg, panX, panY, drawW, drawH);
+      }
+
+      function centerImage() {
+        if (!loadedImg) return;
+        const currentScale = baseScale * scale;
+        const drawW = loadedImg.width * currentScale;
+        const drawH = loadedImg.height * currentScale;
+        panX = (320 - drawW) / 2;
+        panY = (240 - drawH) / 2;
+        drawCropper();
+      }
+
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          loadedImg = new Image();
+          loadedImg.onload = () => {
+            // Escala básica cobrindo exatamente a tela 320x240
+            const hRatio = 320 / loadedImg.width;
+            const vRatio = 240 / loadedImg.height;
+            baseScale = Math.max(hRatio, vRatio);
+            scale = 1.0;
+            zoomSlider.value = 1.0;
+            zoomVal.textContent = "1.0x";
+            zoomSlider.disabled = false;
+            btnCenterCrop.disabled = false;
+            if (rxCharacteristic) btnSendImage.disabled = false;
+
+            centerImage();
+            logText.textContent = "Foto carregada! Arraste para enquadrar.";
+          };
+          loadedImg.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      zoomSlider.addEventListener("input", () => {
+        scale = parseFloat(zoomSlider.value);
+        zoomVal.textContent = scale.toFixed(2) + "x";
+        drawCropper();
+      });
+
+      btnCenterCrop.addEventListener("click", centerImage);
+
+      // Eventos de Toque e Mouse para Arrastar (Pan)
+      const cropContainer = document.getElementById("cropContainer");
+
+      function getClientPos(e) {
+        if (e.touches && e.touches.length > 0) {
+          return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }
+        return { x: e.clientX, y: e.clientY };
+      }
+
+      function handleStart(e) {
+        if (!loadedImg) return;
+        isDragging = true;
+        const pos = getClientPos(e);
+        startX = pos.x;
+        startY = pos.y;
+      }
+
+      function handleMove(e) {
+        if (!isDragging || !loadedImg) return;
+        const pos = getClientPos(e);
+        const dx = pos.x - startX;
+        const dy = pos.y - startY;
+        panX += dx;
+        panY += dy;
+        startX = pos.x;
+        startY = pos.y;
+        drawCropper();
+      }
+
+      function handleEnd() {
+        isDragging = false;
+      }
+
+      cropContainer.addEventListener("mousedown", handleStart);
+      window.addEventListener("mousemove", handleMove);
+      window.addEventListener("mouseup", handleEnd);
+
+      cropContainer.addEventListener("touchstart", handleStart, {
+        passive: true,
+      });
+      window.addEventListener("touchmove", handleMove, { passive: true });
+      window.addEventListener("touchend", handleEnd);
+
+      // Envio da Foto Recortada
+      btnSendImage.addEventListener("click", async () => {
+        if (!rxCharacteristic || !loadedImg) return;
+
+        cropCanvas.toBlob(
+          async (blob) => {
+            if (!blob) return;
+
+            const arrayBuffer = await blob.arrayBuffer();
+            const uint8Array = new Uint8Array(arrayBuffer);
+            const totalBytes = uint8Array.length;
+
+            logText.textContent = `Preparando imagem recortada (${totalBytes} bytes)...`;
+            progressContainer.style.display = "block";
+            progressBar.style.width = "0%";
+
+            // Envia comando de início com o tamanho
+            await sendCommand(`$IMG:${totalBytes}`);
+            await new Promise((r) => setTimeout(r, 120));
+
+            const chunkSize = 180;
+            let offset = 0;
+            btnSendImage.disabled = true;
+
+            try {
+              while (offset < totalBytes) {
+                const chunk = uint8Array.slice(offset, offset + chunkSize);
+                if (rxCharacteristic.writeValueWithResponse) {
+                  await rxCharacteristic.writeValueWithResponse(chunk);
+                } else {
+                  await rxCharacteristic.writeValue(chunk);
+                }
+
+                offset += chunk.length;
+                const pct = Math.round((offset / totalBytes) * 100);
+                progressBar.style.width = pct + "%";
+                logText.textContent = `Enviando foto: ${pct}% (${offset}/${totalBytes} bytes)`;
+
+                await new Promise((r) => setTimeout(r, 25));
+              }
+
+              logText.textContent =
+                "Foto recortada exibida com sucesso na tela!";
+            } catch (err) {
+              logText.textContent = "Erro durante o envio: " + err.message;
+            } finally {
+              btnSendImage.disabled = false;
+              setTimeout(() => {
+                progressContainer.style.display = "none";
+              }, 1500);
+            }
+          },
+          "image/jpeg",
+          0.65,
+        );
+      });
+
+      // Inicializa o canvas
+      drawCropper();
+      updatePreview();
+    </script>
+  </body>
+</html>
